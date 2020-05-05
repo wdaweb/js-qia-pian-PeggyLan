@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跟著龍貓一起動ㄘ動</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css">
+
+    <style>
+        .card {
+            width: 200px;
+            height: 200px;
+            /* 設定子元素在 3D 空間內 */
+            transform-style: preserve-3d;
+            position: relative;
+            /* 整張卡片的旋轉 */
+            transform: rotateX(180deg);
+            /* 0.5秒的翻轉動畫 */
+            transition: transform .5s;
+            float: left;
+            margin: 10px;
+            opacity: 0;
+        }
+
+        .front {
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: absolute;
+            border: 3px solid #403825;
+            border-radius: 10px;
+            box-shadow: inset 0px 0px 5px #000;
+        }
+
+        .back {
+            width: 100%;
+            height: 100%;
+            border: 3px solid #403825;
+            border-radius: 10px;
+            box-shadow: inset 0px 0px 5px #000;
+            background: url(./images/back.jpg) no-repeat center;
+            background-size: contain;
+            position: absolute;
+            /* 把背面的 div 轉到 front 後面貼齊 */
+            transform: rotateX(180deg);
+            backface-visibility: hidden;
+        }
+
+        #game {
+            width: 1480px;
+            height: 870px;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+        }
+
+        .open {
+            transform: rotateX(0deg);
+        }
+
+
+        body {
+            background: url(./images/bg2.jpg) fixed no-repeat;
+            background-size: cover;
+            -webkit-user-select: none;
+            /* height: 100vh; */
+            /* cursor: url(./images/cursor.png), auto; */
+            cursor: pointer;
+
+        }
+
+        #Timer {
+            opacity: 0;
+            position: absolute;
+            top: 25%;
+            left: 100px;
+            text-align: center;
+        }
+
+        #timer {
+            font-size: 60px;
+            color: #403825;
+            font-family: monospace;
+        }
+
+        .Best-Time {
+            opacity: 0;
+            color: #403825;
+            position: absolute;
+            top: 50%;
+            left: 95px;
+            text-align: center;
+
+        }
+
+        .besttime {
+            text-align: left;
+            font-size: 30px;
+            font-family: monospace;
+        }
+
+        #play {
+            position: absolute;
+            top: 75%;
+            left: 100px;
+            opacity: 0;
+            outline: none;
+            border: none;
+            width: 100px;
+            height: 100px;
+            background: none;
+            cursor: pointer;
+        }
+
+        #music {
+            position: absolute;
+            top: 75%;
+            left: 270px;
+            opacity: 0;
+            outline: none;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        .play,
+        .music {
+            box-shadow: 0px 0px 10px #000;
+            border-radius: 50%;
+        }
+
+        .rotate {
+            animation: rotate 5s;
+
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotateX(0deg);
+            }
+
+
+            50% {
+                transform: rotateX(0deg);
+            }
+
+            to {
+                transform: rotateX(180deg);
+            }
+        }
+
+        .rotate2 {
+            animation: rotate2 0s;
+            pointer-events: none;
+        }
+
+        @keyframes rotate2 {
+            from {
+                transform: rotateX(360deg);
+            }
+
+            to {
+                transform: rotateX(360deg);
+            }
+        }
+
+        .custom-input-class::-webkit-input-placeholder {
+            color: #949449 !important;
+            opacity: 0.5 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game"></div>
+    <div id="Timer"><img src="./images/time.png" width="200" height="100">
+        <div id="timer">00:00:00</div>
+    </div>
+    <div class="Best-Time">
+        <div><img src="./images/besttime.png" width="200" height="50"></div>
+        <div class="besttime"> Player: <span id="text-highplayer">-----</span><br>
+            Time: <span id="text-highscore">0</span></div>
+    </div>
+    <button id="play"><img class="play" src="./images/play.png" width="100" height="100"></button>
+    <button id="music"><img class="music" src="./images/music.png" width="100" height="100"></button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@7"></script>
+    <script>
+        // 最高分
+        let highscore = {
+            name: '',
+            timer: 0
+        }
+        // 將localstorage存的文字轉持可以使用的陣列
+        let storage = JSON.parse(localStorage.getItem("highscore"))
+        // 如果有分數紀錄
+        if (storage !== null) {
+            // 將最高分紀錄存成變數並修改網頁文字
+            highscore.name = storage.name
+            highscore.timer = storage.timer
+            $("#text-highplayer").html(highscore.name);
+            $("#text-highscore").html(highscore.timer);
+        }
+        let music = new Audio("./totoro.mp3")
+
+        function def() {
+            $("#play").attr("disabled", false);
+            $(".card").removeClass("ok").fadeTo(0, 1).addClass("rotate2");
+            $("#Timer").fadeTo(500, 1);
+            $(".Best-Time").fadeTo(500, 1);
+            $("#timer").html("00:00:00");
+            $("#play").fadeTo(500, 1);
+            $("#music").fadeTo(500, 1);
+        }
+
+        Swal.fire({
+            title: '<h1 style="color:#403825;text-shadow:0px 5px 10px #806f4a">記憶翻牌遊戲</h1>',
+            text: '準備好跟著龍貓一起動ㄘ動了嗎?',
+            footer: '<h2 style="color:red">How To Play?</h2><h4 style="color:#8b4513">按下紅色開始扭即可開始遊戲，<br>玩家隨機翻開2張牌，同者相消，異者復原，<br>當牌面沒有卡片者即可過關，<br>越快完成者即可獲得最佳優勝紀錄喔!趕快來挑戰吧!!</h4>',
+            background: "url(./images/176780.gif) center/cover",
+            confirmButtonText: "GO !",
+            width: 500,
+            allowOutsideClick: false,
+            showClass: {
+                popup: 'animated bounceInLeft'
+            },
+            hideClass: {
+                popup: 'animated fadeOut'
+            },
+        }).then((result) => {
+            if (result.value) {
+                music.play()
+                $(".card").fadeTo(0, 1).addClass("rotate2")
+                $("#Timer").fadeTo(500, 1);
+                $(".Best-Time").fadeTo(500, 1);
+                $("#play").fadeTo(500, 1);
+                $("#music").fadeTo(500, 1);
+            }
+        })
+
+        // 產生 24張卡片
+        for (let i = 0; i < 24; i++) {
+            $("#game").append(`<div class="card">
+          <div class="front"></div>
+          <div class="back"></div>
+        `)
+        }
+
+        $("#play").click(function () {
+            $("#play").attr("disabled", true);
+            $(".card").removeClass("rotate2").addClass("rotate").css("pointer-events", "none")
+            setTimeout(() => {
+                $(".card").css("pointer-events", "")
+            }, 3500)
+            $(".play").attr("src", "images/onplay.png").css("border", "5px solid #403825")
+
+
+            $(document).ready(function () {
+                let times_mm = 0;
+                let times_ss = 0;
+                let times_ms = 0;
+
+                countTime = setInterval(function () {
+                    times_mm = ++times_mm > 359999 ? 0 : times_mm; // 1分 = 60 秒 = 60*60*1000 毫秒
+                    times_ss = ++times_ss > 5999 ? 0 : times_ss; // 1秒 = 1000 毫秒
+                    times_ms = ++times_ms > 99 ? 0 : times_ms; // 毫秒
+
+                    //分
+                    let mm = Math.floor(times_mm / (100 * 60)).toString();
+                    if (mm.length <= 1) {
+                        mm = "0" + mm;
+                    }
+                    //秒数
+                    let ss = Math.floor(times_ss / 100).toString();
+                    if (ss.length <= 1) {
+                        ss = "0" + ss;
+                    }
+                    //毫秒数
+                    let ms = times_ms.toString();
+                    if (ms.length <= 1) {
+                        ms = "0" + ms;
+                    }
+                    // 获取分钟、秒和毫秒数
+                    $("#timer").html(mm + ":" + ss + ":" + ms);
+                }, 10);
+            });
+        })
+
+        $("#music").on("click", () => {
+            if ($(".music").attr("src") == "images/music.png") {
+                $(".music").attr("src", "images/nomusic.png").css("border", "5px solid #403825")
+                music.pause()
+            } else {
+                $(".music").attr("src", "images/music.png").css("border", "0px solid #403825")
+                music.play()
+            }
+        })
+
+        // 指定數字
+        for (let i = 0; i < $(".card").length; i++) {
+            let num = i % ($(".card").length / 2) + 1;
+            $(".card").eq(i).find(".front").css("background-image",
+                `url(./cards/totoro${num}.gif)`)
+            $(".card").eq(i).attr("data-card", num);
+        }
+
+        // 換 10 次牌
+        for (let i = 0; i < 10; i++) {
+            // 隨機抽一張牌，移動到隨機一張牌後面
+            let target = Math.floor(Math.random() * $(".card").length);
+            let dist = Math.floor(Math.random() * $(".card").length);
+            $(".card").eq(target).insertAfter($(".card").eq(dist));
+        }
+
+        $(".card").on('click', function () {
+            // 如果已翻開的牌數量小於 2，且這張還沒翻開
+            if ($(".open").length < 2 && !$(this).hasClass("open")) {
+                $(this).addClass("open");
+            }
+
+            // 翻開兩張牌了
+            if ($(".open").length == 2) {
+                // 過一秒鐘後翻回來
+                setTimeout(() => {
+                    $(".open").removeClass("open")
+                }, 1000);
+
+                // 如果兩張一樣
+                if ($(".open").eq(0).find(".front").css("background-image") ==
+                    $(".open").eq(1).find(".front").css("background-image")) {
+                    $(".open").fadeTo(1000, 0).addClass("ok")
+                }
+
+                // 如果都配對完
+                if ($(".ok").length == $(".card").length) {
+                    $(".play").attr("src", "images/play.png").css("border", "0px solid #403825")
+                    clearInterval(countTime)
+                    // 等待 1 秒淡出後再跳訊息
+                    setTimeout(() => {
+                        Swal.fire({
+                            allowOutsideClick: false,
+                            title: '恭喜過關',
+                            background: "url(./images/176780.gif) center/cover",
+                        }).then((result) => {
+                            let new_timer = $("#timer").html()
+                            let new_timer_val = new_timer.replace(/:/g, "")
+                            let highscore_timer = highscore.timer != 0 ? highscore.timer.replace(/:/g, "") : highscore.timer
+                            // let highscore_timer = 0
+
+                            // if( highscore.timer != 0){
+                            //     highscore_timer = highscore.timer.replace(/:/g, "")
+                            // }
+                            // else{
+                            //     highscore_timer = highscore.timer
+                            // }
+
+                            // console.log("storage-->" + storage)
+                            // console.log("abc-->" + abc + ":::highscore.timer-->" + highscore_timer)
+                            // console.log("int_abc-->" + parseInt(abc) + ":::int_timer-->" + parseInt(highscore_timer))
+                            if (result.value) {
+                                //數字越小越厲害
+                                if (highscore_timer == 0 || parseInt(new_timer_val) < parseInt(highscore_timer)) {
+                                    const { value: yourname } = Swal.fire({
+                                        allowOutsideClick: false,
+                                        inputPlaceholder: "請輸入您的暱稱",
+                                        title: '恭喜獲得最佳成績!',
+                                        input: 'text',
+                                        showCancelButton: true,
+                                        confirmButtonText: "Done",
+                                        background: "url(./images/176780.gif) center/cover",
+                                        inputClass: 'custom-input-class',
+                                        inputValidator: (value) => {
+                                            // 如果有輸入
+                                            if (value !== null && value.trim() !== '') {
+                                                console.log("abcdefg");
+                                                // 將輸入的名字與分數存入變數
+                                                highscore.name = value
+                                                highscore.timer = new_timer
+                                                // highscore.timer = $("#timer").html()
+                                                // console.log("name-->" + value)
+                                                // console.log("timer-->" + new_timer)
+                                                // 修改最高分
+                                                $("#text-highplayer").html(highscore.name);
+                                                $("#text-highscore").html(highscore.timer);
+                                                // 將最高的分數轉成文字後存入localstroage
+                                                localStorage.setItem("highscore", JSON.stringify(highscore))
+                                            }
+                                        }
+                                    })
+                                }
+                                def()
+                            }
+                        })
+                    }, 100);
+                }
+            }
+
+        })
+    </script>
+</body>
+
+</html>
